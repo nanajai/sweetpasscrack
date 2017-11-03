@@ -85,7 +85,6 @@ def guess_password(sweetwords):
                     return
     else: #look at another option
         print('No match to RockYou top 100 found. Searching structurally.')
-        sweetwords_struct_map = {}
         
         # Create list of structures
         sweetword_structs = {}
