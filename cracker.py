@@ -42,15 +42,15 @@ def get_100_passwords():
 
 
 # Returns hashmap mapping structures to their frequencies within the top 100 most common passwords of the RockYou DB.
-def get_struct_map(passList):
-    freqMap = {}
-    for password in passList:
-        struct = deriveStructure(password)
-        if struct in freqMap:
-            freqMap[struct] += 1
-        else:
-            freqMap[struct] = 1
-    return freqMap
+#def get_struct_map(passList):
+#    freqMap = {}
+#    for password in passList:
+#        struct = deriveStructure(password)
+#        if struct in freqMap:
+#            freqMap[struct] += 1
+#        else:
+#            freqMap[struct] = 1
+#    return freqMap
 
 
 #Returns a hashmap of the ranks of passwords within the top 100. It will look for the password within a sweetword
@@ -66,6 +66,35 @@ def get_rockyou_pass(sweetwords_list):
 
     return pass_dict
 
+def structural_check(sweetwords_list):
+    print('No match to RockYou top 100 found. Searching structurally.')
+
+    #load preprocessed structure frequency map
+    with open('expression_freq.csv') as f:
+        struct_freq= dict(filter(None, csv.reader(f)))
+
+    # Create list of structures
+    sweetword_structs = {}
+    for sweetword in sweetwords_list:
+        struct = deriveStructure(sweetword)
+        freq = 0
+        if struct in struct_freq:
+            freq = struct_freq[struct]
+        ## TODO: What if the structure of the sweetword isn't in the struct_map?
+        ## Sweetword has zero frequency and will be filtered out if there is any other sweetword with higher freq.
+        ## If not, pass on the whole list to semantic search
+        sweetword_structs[sweetword] = freq
+
+    # Get the sweetwords with the most freq structures in a list.
+    # Output one of them at random -- they are flat.
+    print(sweetword_structs)
+    topFreq = sorted(sweetword_structs.values())[-1]
+    mostFreq = []
+    for sWord,freq in sweetword_structs.items():
+        if freq == topFreq:
+            mostFreq.append(sWord)
+    print(mostFreq[randint(0, len(mostFreq)-1)]) ## TODO <--- CALL SEMANTIC ANALYSIS ON REMAINING LIST
+    return
 
 
 def guess_password(sweetwords):
@@ -73,39 +102,20 @@ def guess_password(sweetwords):
     sweetwords_list = sweetwords.split(',')
     pass_dict = get_rockyou_pass(sweetwords_list)
     print("pass_dict: ", pass_dict)
-    
-    struct_map = get_struct_map(get_100_passwords())
-    print("struct_map: ", struct_map)
+
+
 
     highestRank = sorted(pass_dict.values())[0]
-    if(highestRank != 101):
-        for key,value in pass_dict.items():
-                if(value == highestRank):
-                    print(key)
-                    return
-    else: #look at another option
-        print('No match to RockYou top 100 found. Searching structurally.')
-        
-        # Create list of structures
-        sweetword_structs = {}
-        for sweetword in pass_dict.keys():
-            struct = deriveStructure(sweetword)
-            freq = 0
-            if struct in struct_map:
-                freq = struct_map[struct]
-            ## TODO: What if the structure of the sweetword isn't in the struct_map?
-            sweetword_structs[sweetword] = freq
-        
-        # Get the sweetwords with the most freq structures in a list.
-        # Output one of them at random -- they are flat.
-        print(sweetword_structs)
-        topFreq = sorted(sweetword_structs.values())[-1]
-        mostFreq = []
-        for sWord,freq in sweetword_structs.items():
-            if freq == topFreq:
-                mostFreq.append(sWord)
-        print(mostFreq[randint(0, len(mostFreq)-1)])
-        return
+    topRank = []
+    for key,value in pass_dict.items():
+            if(value == highestRank):
+                topRank.append(key)
+    if(len(topRank) == 1):
+        print(topRank[0])
+    else:
+        print("Search structurally on remaining values ",topRank)
+        structural_check(topRank)
+
 
 
 def main():
