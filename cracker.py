@@ -4,7 +4,9 @@ import sys
 import csv
 import codecs
 import string
+import itertools
 from random import randint
+from collections import Counter
 
 def getPart(ch):
     if (ch.isalpha()):
@@ -116,6 +118,67 @@ def guess_password(sweetwords):
         print("Search structurally on remaining values ",topRank)
         structural_check(topRank)
 
+def segment_edit(sweetwords):
+	sweetwords_list = sweetwords.split(',')
+	accumulator = Counter()
+
+	#Find the 20 most common substrings in the string made by concatenating sweetwords
+	text = ''
+	for i in sweetwords_list:
+		text += i
+
+	for length in range(1,len(text)+1):
+	    for start in range(len(text) - length):
+	        accumulator[text[start:start+length]] += 1
+
+	csubstr = accumulator.most_common(20)
+
+	#Find the largest common substring in the top 20 list
+	max = ''
+	for i in range(0, len(csubstr)):
+		if (len(csubstr[i][0]) > len(max)):
+			max = csubstr[i][0]
+	
+	#Find sweetwords that contain the largetst substring
+	possible_pws = []
+	for sweetword in sweetwords_list:
+		if(max in sweetword):
+			possible_pws.append(sweetword)
+
+	#Calculate the sums of edit distances of each pair in the sweetwords list
+	distances = []
+	counter = 0
+	sum = 0
+	for pair in itertools.product(possible_pws, repeat=2):
+		sum += levenshteinDistance(*pair)
+		counter += 1
+		if(counter == len(possible_pws)):
+			distances.append(sum)
+			counter = 0
+			sum = 0
+
+	#Return the first sweetword with the least edit distance difference
+	#We can randomize the index since multiple sweetwords can have the same edit distance sum
+	print("password:",possible_pws[distances.index(min(distances))])
+	return possible_pws[distances.index(min(distances))]
+
+#edit distance function
+def levenshteinDistance(s1, s2):
+    if len(s1) > len(s2):
+        s1, s2 = s2, s1
+
+    distances = range(len(s1) + 1)
+    for i2, c2 in enumerate(s2):
+        distances_ = [i2+1]
+        for i1, c1 in enumerate(s1):
+            if c1 == c2:
+                distances_.append(distances[i1])
+            else:
+                distances_.append(1 + min((distances[i1], distances[i1 + 1], distances_[-1])))
+        distances = distances_
+
+    print(distances[-1])
+    return distances[-1]
 
 
 def main():
