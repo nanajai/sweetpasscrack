@@ -7,6 +7,11 @@ import string
 import itertools
 from random import randint
 from collections import Counter
+import nltk
+import operator
+from nltk.corpus import words
+from itertools import chain, combinations
+
 
 def getPart(ch):
     if (ch.isalpha()):
@@ -69,7 +74,7 @@ def get_rockyou_pass(sweetwords_list):
     return pass_dict
 
 def structural_check(sweetwords_list):
-    print('No match to RockYou top 100 found. Searching structurally.')
+    print('No discerning word frequencies found. Searching structurally.')
 
     #load preprocessed structure frequency map
     with open('expression_freq.csv') as f:
@@ -95,8 +100,24 @@ def structural_check(sweetwords_list):
     for sWord,freq in sweetword_structs.items():
         if freq == topFreq:
             mostFreq.append(sWord)
-    print(mostFreq[randint(0, len(mostFreq)-1)]) ## TODO <--- CALL SEMANTIC ANALYSIS ON REMAINING LIST
-    return
+    #print(mostFreq[randint(0, len(mostFreq)-1)]) ## TODO <--- CALL SEMANTIC ANALYSIS ON REMAINING LIST
+    return mostFreq
+
+def contains_english_word(sweetword):
+
+    accumulator = Counter()
+    for length in range(1,len(sweetword)+1):
+        for start in range((len(sweetword)+1)-length):
+            accumulator[sweetword[start:start+length]] += 1
+
+    frequency = 0
+    for subset in list(accumulator):
+        if(len(subset)>1 and subset in words.words()):
+            print("{} has this part of speech {}",sweetword,subset)
+            frequency += 1
+    return frequency
+
+
 
 
 def guess_password(sweetwords):
@@ -104,8 +125,6 @@ def guess_password(sweetwords):
     sweetwords_list = sweetwords.split(',')
     pass_dict = get_rockyou_pass(sweetwords_list)
     print("pass_dict: ", pass_dict)
-
-
 
     highestRank = sorted(pass_dict.values())[0]
     topRank = []
@@ -115,8 +134,33 @@ def guess_password(sweetwords):
     if(len(topRank) == 1):
         print(topRank[0])
     else:
-        print("Search structurally on remaining values ",topRank)
-        structural_check(topRank)
+        word_freq = {}
+        for sweetword in topRank:
+            print("Examining {}", sweetword)
+            word_freq[sweetword] = contains_english_word(sweetword)
+
+        #This is retrieving keys of dict in descending order of values  {ffffff, jamess, ggggg } retruns {jamess,ffffff,ggggg}
+        sorted_freq = sorted(word_freq, key=word_freq.get(0), reverse=True)
+        #Retrive highest freq key - jamess
+        highest_freq_key = sorted_freq[0]
+        #Retreive jamess corresponding value - 7 words in jamess
+        highest_freq_val = word_freq[highest_freq_key]
+
+        print("Highest Freq Val ",highest_freq_val)
+        print(word_freq)
+        #Check for matching freq in the rest of the words to make sure equal freq words are sent for structural test
+        matching_freq_words = []
+        for key,val in word_freq.items():
+            if(val == highest_freq_val):
+                matching_freq_words.append(key)
+
+        if(len(matching_freq_words) == 1):
+            print(matching_freq_words[0])
+            return
+        else:
+            print("Search structurally on remaining values ",matching_freq_words)
+            filtered_list = structural_check(matching_freq_words)
+            print(filtered_list[randint(0, len(filtered_list)-1)])
 
 def segment_edit(sweetwords):
 	sweetwords_list = sweetwords.split(',')
@@ -138,7 +182,7 @@ def segment_edit(sweetwords):
 	for i in range(0, len(csubstr)):
 		if (len(csubstr[i][0]) > len(max)):
 			max = csubstr[i][0]
-	
+
 	#Find sweetwords that contain the largetst substring
 	possible_pws = []
 	for sweetword in sweetwords_list:
@@ -182,6 +226,7 @@ def levenshteinDistance(s1, s2):
 
 
 def main():
+    #nltk.download()
     num_sets = int(sys.argv[1])
     num_sweetwords = int(sys.argv[2])
     i_name = sys.argv[3]
