@@ -237,7 +237,7 @@ def main():
         for line in i:
             if line == '' or line == '\n': break
             newline = line.rstrip()
-            output_indices.append(guess_password(newline))
+            output_indices.append(guess_password(newline)+1)
     i.close()
     print(output_indices)
 
