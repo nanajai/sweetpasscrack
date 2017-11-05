@@ -132,7 +132,7 @@ def guess_password(sweetwords):
             if(value == highestRank):
                 topRank.append(key)
     if(len(topRank) == 1):
-        return topRank[0]
+        return sweetwords_list.index(topRank[0])
     else:
         word_freq = {}
         for sweetword in topRank:
@@ -155,12 +155,14 @@ def guess_password(sweetwords):
                 matching_freq_words.append(key)
 
         if(len(matching_freq_words) == 1):
-            return matching_freq_words[0]
-            return
+            print("Sweetwords are ", sweetwords)
+            print("Word is ", matching_freq_words[0])
+            return sweetwords_list.index(matching_freq_words[0])
+
         else:
             print("Search structurally on remaining values ",matching_freq_words)
             filtered_list = structural_check(matching_freq_words)
-            return filtered_list[randint(0, len(filtered_list)-1)]
+            return sweetwords_list.index(filtered_list[randint(0, len(filtered_list)-1)])
 
 def segment_edit(sweetwords):
 	sweetwords_list = sweetwords.split(',')
@@ -230,15 +232,16 @@ def main():
     num_sets = int(sys.argv[1])
     num_sweetwords = int(sys.argv[2])
     i_name = sys.argv[3]
-    output_sweetwords = []
+    output_indices = []
     with open(i_name, 'r') as i:
         for line in i:
             if line == '' or line == '\n': break
             newline = line.rstrip()
-            output_sweetwords.append(guess_password(newline))
+            output_indices.append(guess_password(newline))
     i.close()
+    print(output_indices)
 
-    print(','.join(output_sweetwords))
+    print(','.join([str(i) for i in output_indices]))
 
 if __name__ == '__main__':
     main()
