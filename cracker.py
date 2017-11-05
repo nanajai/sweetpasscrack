@@ -112,7 +112,7 @@ def contains_english_word(sweetword):
 
     frequency = 0
     for subset in list(accumulator):
-        if(len(subset)>1 and subset in words.words()):
+        if(len(subset)>2 and subset in words.words()):
             print("{} has this part of speech {}",sweetword,subset)
             frequency += 1
     return frequency
@@ -132,7 +132,7 @@ def guess_password(sweetwords):
             if(value == highestRank):
                 topRank.append(key)
     if(len(topRank) == 1):
-        print(topRank[0])
+        return topRank[0]
     else:
         word_freq = {}
         for sweetword in topRank:
@@ -155,12 +155,12 @@ def guess_password(sweetwords):
                 matching_freq_words.append(key)
 
         if(len(matching_freq_words) == 1):
-            print(matching_freq_words[0])
+            return matching_freq_words[0]
             return
         else:
             print("Search structurally on remaining values ",matching_freq_words)
             filtered_list = structural_check(matching_freq_words)
-            print(filtered_list[randint(0, len(filtered_list)-1)])
+            return filtered_list[randint(0, len(filtered_list)-1)]
 
 def segment_edit(sweetwords):
 	sweetwords_list = sweetwords.split(',')
@@ -230,14 +230,15 @@ def main():
     num_sets = int(sys.argv[1])
     num_sweetwords = int(sys.argv[2])
     i_name = sys.argv[3]
-
+    output_sweetwords = []
     with open(i_name, 'r') as i:
         for line in i:
             if line == '' or line == '\n': break
             newline = line.rstrip()
-            guess_password(newline)
+            output_sweetwords.append(guess_password(newline))
     i.close()
 
+    print(','.join(output_sweetwords))
 
 if __name__ == '__main__':
     main()
