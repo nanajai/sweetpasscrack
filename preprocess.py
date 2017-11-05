@@ -4,6 +4,25 @@ import codecs
 import string
 import csv
 
+def get_100_passwords():
+    dataset = codecs.open('rockyou_password.txt', 'r', encoding='utf-8', errors='ignore')
+    entries = dataset.read().split("\n")
+
+    passwords = []
+    i = 0
+    for line in entries:
+        elems = line.strip(" ").split(" ")
+        if(len(elems) > 1 and elems[1] != ' '):
+            passwords.append(elems[1])
+            i = i+1
+        if(i==100):
+            break
+
+    dataset.close()
+
+    return passwords
+
+
 def get_all_passwords():
     dataset = codecs.open('rockyou_password.txt', 'r', encoding='utf-8', errors='ignore')
     entries = dataset.read().split("\n")
@@ -51,10 +70,16 @@ def get_struct_map(passList):
 
 def main():
     freqMap = get_struct_map(get_all_passwords())
+    topPass = get_100_passwords()
 
     writer = csv.writer(open("expression_freq.csv", "w"))
     for key, val in freqMap.items():
         writer.writerow([key, val])
+
+    print(topPass)
+    writer2 = csv.writer(open("top_pass.csv","w"))
+    for value in topPass:
+        writer2.writerow([value])
 
 if __name__ == '__main__':
     main()

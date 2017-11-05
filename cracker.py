@@ -29,28 +29,15 @@ def deriveStructure(password):
     return str("".join(parts))
 
 
-def get_100_passwords():
-    dataset = codecs.open('rockyou_password.txt', 'r', encoding='utf-8', errors='ignore')
-    entries = dataset.read().split("\n")
-
-    passwords = []
-    i = 0
-    for line in entries:
-        elems = line.strip(" ").split(" ")
-        if(len(elems) > 1 and elems[1] != ' '):
-            passwords.append(elems[1])
-            i = i+1
-        if(i==100):
-            break
-
-    dataset.close()
-
-    return passwords
-
-
 # Returns a hashmap of the ranks of passwords within the top 100. It will look for the password within a sweetword
 def get_rockyou_pass(sweetwords_list):
-    passwords = get_100_passwords()
+    passwords = []
+    with open('top_pass.csv') as csvfile:
+        readCSV = csv.reader(csvfile, delimiter='\n')
+        for row in readCSV:
+            passwords.append("".join(row))
+
+
     pass_dict = dict.fromkeys(sweetwords_list, 101)
     for sweetword in sweetwords_list:
         for i,password in enumerate(passwords):
